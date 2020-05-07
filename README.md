@@ -20,6 +20,8 @@ This script is almost entirely derived from Lewis Miller's blog, "freshly squeez
 
 1. Add the `delugeExport.sh` file to your file system.
 2. Make sure to make the script executable using `chmod +x delugeExport.sh`
+2. Copy the file `delugeExport.settings.template` to `delugeExport.settings` and
+   fill in all of the settings as needed.
 2. Enable the Execute plugin in Deluge.
 2. Add a command on the event "Torrent Complete", to execute the name of your script.
 2. You may need to restart Deluge in order for the Execute plugin to register your command.
