@@ -1,53 +1,11 @@
 #!/bin/bash
 ####################################################################
-###             Please fill in the variables below!              ###
+###    Please create a delugeExport.settings file in the same
+###    directory as this script
 ####################################################################
 
-# !! Important: create a script `perlenv` that contains the environment
-# variables that bash needs to properly execute perl. You should be
-# able to find an example in your own .bashrc or .bash_profile
-source $HOME/bin/perlenv
-
-# Delay the script by this amount before running. This is useful if 
-# you want deluge to continue seeding for some time before moving the torrent.
-# Use any standard bash sleep duration such as 60s, 10m, 3h, 1d, etc.
-sleep=
-
-# Default is "deluge", but you should have changed it...
-password=deluge
-
-# Your domain/IP here. For example, google.com or localhost or 127.0.0.1
-domain=localhost
-
-# The port you use to access the WebUI (default 8112)
-port=8112
-
-# Do you use http or https to access the WebUI (default http)?
-scheme=http
-
-# Which folder are you keeping rtorrent_fast_resume.pl in?
-# Please include trailing slash.
-dir=$HOME/bin/
-
-# Where do your torrents eventually download to? If they auto-move
-# please specify that directory. Please include trailing slash.
-#download=$HOME/files/
-download=$HOME/files/
-
-# rTorrent's watch folder. Please include trailing slash.
-watch=$HOME/rtorrent-watch/
-
-# Do you want to backup whatever's in Deluge's state directory before
-# you rm it all? (Maybe useful the first time for the mass-transfer
-# just to be sure but probably not afterward).
-backup=yes
-backup_path=$HOME/deluge-backups/
-
-# Do not change this unless you have knowingly changed Deluge's
-# state folder.
-files=$HOME/.config/deluge/state/
-
-logfile=$HOME/log/delugeExport.log
+settings=`dirname "$0"`/delugeExport.settings
+source "$settings"
 
 ###                                                              ###
 # This script is designed to be used alongside the Execute plugin! #
@@ -60,10 +18,12 @@ logfile=$HOME/log/delugeExport.log
 ####################################################################
 
 function log(){
+    if [ -n "$logfile" ]
+    then
         timestamp=`date "+%m-%d-%y.%H.%M.%S"`
         echo "$timestamp  $1" >> $logfile
+    fi
 }
-
 
 # Backup if you told it to.
 date=`date "+%m-%d-%y.%H.%M.%S"`
@@ -76,27 +36,27 @@ if [ "$backup" = "yes" ]; then tar -cf $backup_path/deluge_state.$date.tar $file
 # Authenticating to deluge-web.
 # Remove torrent using $1 var passed from Execute.
 if [ -n "$1" -a -n "$2" -a -n "$3" ]; then
-        torrentid=$1
-        torrentname=$2
-        torrentpath=$3
+    torrentid=$1
+    torrentname=$2
+    torrentpath=$3
 
-        if [ -n "$sleep" ]
-        then
-                log "delugeExport.sh $@"
-                log "Delaying by $sleep..."
-                sleep $sleep
-                log "... Resuming $@"
-        fi
+    if [ -n "$sleep" ]
+    then
+            log "delugeExport.sh $@"
+            log "Delaying by $sleep..."
+            sleep $sleep
+            log "... Resuming $@"
+    fi
 
-        log "Exporting $torrentname"
-        perl $dir/rtorrent_fast_resume.pl "$torrentpath" < "$files/$torrentid.torrent" > "$watch/$torrentname.$RANDOM.torrent"
-        cookie=`curl -vskm 1 -H "Content-Type: application/json" -X POST -d "{\"id\": 1,\"method\": \"auth.login\",\"params\": [\"$password\"]}" $scheme://$domain:$port/json 2>&1 | grep -i "Set-Cookie:" | cut -d '=' -f2 | cut -d ';' -f1`
-        curl -vskm 1 -b _session_id=$cookie -H "Content-Type: application/json" -X POST -d "{\"method\":\"core.remove_torrent\",\"params\":[\"$1\",false],\"id\":2}" $scheme://$domain:$port/json
+    log "Exporting $torrentname"
+    perl $dir/rtorrent_fast_resume.pl "$torrentpath" < "$files/$torrentid.torrent" > "$watch/$torrentname.$RANDOM.torrent"
+    cookie=`curl -vskm 1 -H "Content-Type: application/json" -X POST -d "{\"id\": 1,\"method\": \"auth.login\",\"params\": [\"$password\"]}" $scheme://$domain:$port/json 2>&1 | grep -i "Set-Cookie:" | cut -d '=' -f2 | cut -d ';' -f1`
+    curl -vskm 1 -b _session_id=$cookie -H "Content-Type: application/json" -X POST -d "{\"method\":\"core.remove_torrent\",\"params\":[\"$1\",false],\"id\":2}" $scheme://$domain:$port/json
 else
-        for f in $files/*.torrent
-        do
-          name=`basename $f
-          log "Exporting $name"`
-          perl $dir/rtorrent_fast_resume.pl $download < $f > $watch/$name
-        done
+    for f in $files/*.torrent
+    do
+      name=`basename $f
+      log "Exporting $name"`
+      perl $dir/rtorrent_fast_resume.pl $download < $f > $watch/$name
+    done
 fi
