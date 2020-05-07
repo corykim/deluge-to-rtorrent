@@ -49,27 +49,25 @@ files=$HOME/.config/deluge/state/
 
 logfile=$HOME/log/delugeExport.log
 
-###							         ###
+###                                                              ###
 # This script is designed to be used alongside the Execute plugin! #
-###								 ###
+###                                                              ###
 
 ####################################################################
 ###   Please remember to create the watch folder for rTorrent!   ###
 ###   Please remember to have rTorrent fully setup and config'd! ###
-###   Remember to chmod  x this script and the perl script!	 ###
+###   Remember to chmod  x this script and the perl script!      ###
 ####################################################################
+
+function log(){
+        timestamp=`date "+%m-%d-%y.%H.%M.%S"`
+        echo "$timestamp  $1" >> $logfile
+}
+
 
 # Backup if you told it to.
 date=`date "+%m-%d-%y.%H.%M.%S"`
 if [ "$backup" = "yes" ]; then tar -cf $backup_path/deluge_state.$date.tar $files; fi
-
-if [ -n "$sleep" ]
-then
-	echo "$date: ~/bin/delugeExport.sh $@" >> $logfile
-	echo "Delaying by $sleep..." >> $logfile
-	sleep $sleep
-	echo "... Resuming $@" >> $logfile
-fi
 
 # Every torrent, "f", will have fastresume data added and then moved
 # to rTorrent's watch directory, $watch, for addition.
@@ -78,18 +76,27 @@ fi
 # Authenticating to deluge-web.
 # Remove torrent using $1 var passed from Execute.
 if [ -n "$1" -a -n "$2" -a -n "$3" ]; then
-	torrentid=$1
+        torrentid=$1
         torrentname=$2
         torrentpath=$3
-	
-	perl $dir/rtorrent_fast_resume.pl "$torrentpath" < "$files/$torrentid.torrent" > "$watch/$torrentname.$RANDOM.torrent"
+
+        if [ -n "$sleep" ]
+        then
+                log "delugeExport.sh $@"
+                log "Delaying by $sleep..."
+                sleep $sleep
+                log "... Resuming $@"
+        fi
+
+        log "Exporting $torrentname"
+        perl $dir/rtorrent_fast_resume.pl "$torrentpath" < "$files/$torrentid.torrent" > "$watch/$torrentname.$RANDOM.torrent"
         cookie=`curl -vskm 1 -H "Content-Type: application/json" -X POST -d "{\"id\": 1,\"method\": \"auth.login\",\"params\": [\"$password\"]}" $scheme://$domain:$port/json 2>&1 | grep -i "Set-Cookie:" | cut -d '=' -f2 | cut -d ';' -f1`
-	curl -vskm 1 -b _session_id=$cookie -H "Content-Type: application/json" -X POST -d "{\"method\":\"core.remove_torrent\",\"params\":[\"$1\",false],\"id\":2}" $scheme://$domain:$port/json
+        curl -vskm 1 -b _session_id=$cookie -H "Content-Type: application/json" -X POST -d "{\"method\":\"core.remove_torrent\",\"params\":[\"$1\",false],\"id\":2}" $scheme://$domain:$port/json
 else
-	for f in $files/*.torrent
+        for f in $files/*.torrent
         do
-          name=`basename $f`
+          name=`basename $f
+          log "Exporting $name"`
           perl $dir/rtorrent_fast_resume.pl $download < $f > $watch/$name
         done
 fi
-
