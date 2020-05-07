@@ -55,8 +55,8 @@ if [ -n "$1" -a -n "$2" -a -n "$3" ]; then
 else
     for f in $files/*.torrent
     do
-      name=`basename $f
-      log "Exporting $name"`
+      name=`basename $f`
+      log "Exporting $name"
       perl $dir/rtorrent_fast_resume.pl $download < $f > $watch/$name
     done
 fi
