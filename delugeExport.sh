@@ -21,7 +21,7 @@ function log(){
     if [ -n "$logfile" ]
     then
         timestamp=`date "+%m-%d-%y.%H.%M.%S"`
-        echo "$timestamp  $1" >> $logfile
+        echo "$timestamp  $@" >> $logfile
     fi
 }
 
