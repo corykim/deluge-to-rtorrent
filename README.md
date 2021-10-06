@@ -33,3 +33,7 @@ This script is almost entirely derived from Lewis Miller's blog, "freshly squeez
 2. The script will add fast resume data to the torrent.
 3. The script will send the torrent to rTorrent's watch directory.
 3. The script will login to Deluge and remove the torrent.
+
+## Command Line Operation
+
+You can execute the command `delugeExport.sh` manually from a command line. The script will then export every torrent that is currently in Deluge. The exported torrents will *not* be removed from Deluge.

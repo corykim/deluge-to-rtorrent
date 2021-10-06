@@ -31,10 +31,12 @@ if [ "$backup" = "yes" ]; then tar -cf $backup_path/deluge_state.$date.tar $file
 
 # Every torrent, "f", will have fastresume data added and then moved
 # to rTorrent's watch directory, $watch, for addition.
-# $1,$2 received from Execute plugin. Need specifics when not en masse.
+#
+# $1,$2 are received from Execute plugin. Need specifics when not en masse.
+#
 # If block ensures these lines don't run except via Execute plugin.
-# Authenticating to deluge-web.
-# Remove torrent using $1 var passed from Execute.
+# - Authenticating to deluge-web.
+# - Remove torrent using $1 var passed from Execute.
 if [ -n "$1" -a -n "$2" -a -n "$3" ]; then
     torrentid=$1
     torrentname=$2
@@ -53,6 +55,9 @@ if [ -n "$1" -a -n "$2" -a -n "$3" ]; then
     cookie=`curl -vskm 1 -H "Content-Type: application/json" -X POST -d "{\"id\": 1,\"method\": \"auth.login\",\"params\": [\"$password\"]}" $scheme://$domain:$port/json 2>&1 | grep -i "Set-Cookie:" | cut -d '=' -f2 | cut -d ';' -f1`
     curl -vskm 1 -b _session_id=$cookie -H "Content-Type: application/json" -X POST -d "{\"method\":\"core.remove_torrent\",\"params\":[\"$1\",false],\"id\":2}" $scheme://$domain:$port/json
 else
+# Executed directly from command line.
+# Migrate all torrents en masse. Do not remove torrents from Deluge.
+#
     for f in $files/*.torrent
     do
       name=`basename $f`
