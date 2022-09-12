@@ -15,6 +15,7 @@ This script is almost entirely derived from Lewis Miller's blog, "freshly squeez
 - Deluge
 - rTorrent:
 	- You will want to set up a watch folder in rTorrent
+- rtorrent_fast_resume.pl located in the [rtorrent repo](https://github.com/rakshasa/rtorrent/blob/master/doc/rtorrent_fast_resume.pl) Note: If you have trouble install `Convert::Bencode_XS` you should change the import to `Convert::Bencode`
 
 ## Installation
 

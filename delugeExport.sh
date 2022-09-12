@@ -35,8 +35,8 @@ if [ "$backup" = "yes" ]; then tar -cf $backup_path/deluge_state.$date.tar $file
 # $1,$2 are received from Execute plugin. Need specifics when not en masse.
 #
 # If block ensures these lines don't run except via Execute plugin.
-# - Authenticating to deluge-web.
-# - Remove torrent using $1 var passed from Execute.
+# Authenticating to deluge-web.
+# Remove torrent using $1 var passed from Execute.
 if [ -n "$1" -a -n "$2" -a -n "$3" ]; then
     torrentid=$1
     torrentname=$2
